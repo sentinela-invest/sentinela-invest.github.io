@@ -2,7 +2,7 @@
 <!-- Sentinela.invest - site de vendas. Direcao "K - Startup", escolhida em 27/09/2026:
      historia no ritmo do scroll (nada trava), vidro no estilo Liquid Glass, Motion 13,
      sempre preto (o botao troca pra branco e a escolha fica guardada).
-     Os prototipos e as outras direcoes ficam em prototipo/ no repo de design. -->
+     GERADO por gerar-index.py a partir de prototipo/k-startup.html - editar la', nao aqui. -->
 <html lang="pt-BR" data-tema="preto">
 <head>
 <meta charset="utf-8">
@@ -410,13 +410,10 @@
   .economia s{color:var(--tx-3);margin-right:8px}
   .economia b{color:var(--ambar-tx);font-weight:600;font-variant-numeric:tabular-nums}
   .js .meses i{opacity:0}
-  .js .vagas .pts i{transform:scale(0)}
   @media (max-width:420px){ .meses{gap:3px} .meses i{height:28px;border-radius:7px} }
   .plano li{display:flex;gap:12px;align-items:flex-start;font-size:17px}
   .plano li svg{width:20px;height:20px;flex:none;color:var(--azul-tx);margin-top:2px}
   .plano .btn{width:100%}
-  .vagas{display:flex;align-items:center;justify-content:center;gap:12px;width:fit-content;margin:26px auto 0;padding:11px 18px;border-radius:999px;color:var(--tx-2);font-size:15px}
-  .vagas .pts{display:flex;gap:4px}.vagas .pts i{width:8px;height:8px;border-radius:3px;background:var(--azul)}.vagas .pts i.o{background:var(--fio-2)}
   .nota{margin-top:16px;font-size:15px;color:var(--tx-3)}
 
   /* duvidas */
@@ -726,8 +723,7 @@
       <ul id="p-lista"></ul>
       <a class="btn vidro azul" id="p-btn" href="https://sentinela-invest.github.io/ficha/">Começar pelo mensal <svg><use href="#seta"/></svg></a>
     </div>
-    <p class="vagas vidro rv"><span class="pts"><i class="o"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>9 de 10 vagas com o 1º mês grátis</p>
-    <p class="nota rv">Você só paga depois do mês grátis. Os dados do pagamento chegam por mensagem no Telegram.</p>
+    <p class="nota rv">Os dados do pagamento chegam por mensagem no Telegram.</p>
   </div>
 </section>
 
@@ -738,7 +734,7 @@
       <details><summary>Preciso ter Telegram?<i><svg><use href="#mais"/></svg></i></summary><div class="resp"><p>Por enquanto, sim: é por lá que os avisos chegam. O aplicativo é gratuito e instala em dois minutos.</p></div></details>
       <details><summary>Funciona com fundo imobiliário?<i><svg><use href="#mais"/></svg></i></summary><div class="resp"><p>Sim. Ações e fundos imobiliários da B3. Os comunicados da CVM valem só para as ações, por enquanto.</p></div></details>
       <details><summary>Como vejo se estou ganhando?<i><svg><use href="#mais"/></svg></i></summary><div class="resp"><p>Todo dia, o resumo mostra quanto a carteira andou desde que você entrou. Uma vez por mês, você vê também o resultado desde a compra.</p></div></details>
-      <details><summary>Como pago? E se eu quiser parar?<i><svg><use href="#mais"/></svg></i></summary><div class="resp"><p>O primeiro mês é grátis para as dez primeiras pessoas. Depois, o mensal é cobrado todo mês e o anual é um Pix só. Para parar, é só avisar no bot.</p></div></details>
+      <details><summary>Como pago? E se eu quiser parar?<i><svg><use href="#mais"/></svg></i></summary><div class="resp"><p>O mensal é cobrado todo mês e o anual é um Pix só. Para parar, é só avisar no bot.</p></div></details>
     </div>
   </div>
 </section>
@@ -1365,11 +1361,10 @@ const PLANOS = {
     M.animate(0, 1, { duration: 2.8, ease: [0.45, 0, 0.12, 1], onUpdate: p => { o.p = p; roic.style.strokeDashoffset = roicB.style.strokeDashoffset = RL * (1 - p); poeDica(); } });
   }, { amount: .55 });
 
-  /* ---------------- preco: a regua se monta e as vagas aparecem quando o cartao entra ---------------- */
+  /* ---------------- preco: a regua se monta quando o cartao entra ---------------- */
   M.inView("#p-cartao", () => {
     M.animate("#p-meses i", { opacity: [0, 1], y: [12, 0], scale: [.8, 1] }, { duration: .5, ease: VOLTA, delay: M.stagger(.045, { startDelay: .35 }) });
   }, { amount: .35 });
-  M.inView(".vagas", () => { M.animate(".vagas .pts i", { scale: [0, 1] }, { duration: .45, ease: VOLTA, delay: M.stagger(.06, { startDelay: .2 }) }); }, { amount: .8 });
 
   /* ---------------- faixa do fim: anda so' na tela e tem pausa ---------------- */
   const faixaAnim = M.animate(faixaIn, { x: ["0%", "-50%"] }, { duration: 40, ease: "linear", repeat: Infinity });
