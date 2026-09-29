@@ -169,6 +169,11 @@
   @media (max-width:640px){ .pilha .motivo{white-space:normal;width:calc(100% - 16px)} }
   .vn{position:absolute;left:50%;top:60px;width:min(390px,94%);translate:-50% 0;display:flex;gap:12px;align-items:flex-start;padding:13px 15px 14px;border-radius:24px;
     text-align:left;font-size:14.5px;line-height:1.35;color:var(--tx);opacity:0;will-change:transform,opacity;--tinta:var(--vn-tinta)}
+  /* Cartao de vidro sobre cartao de vidro: cada camada desfoca a de baixo, que
+     ja estava desfocada, e a pilha vira sopa -- pior no celular, onde elas se
+     sobrepoem quase inteiras. So' a da FRENTE continua sendo vidro; as de tras
+     ficam opacas, que e' o que da profundidade de verdade. */
+  .vn.atras{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--cartao)}
   .vn .ic{width:38px;height:38px;border-radius:10px;flex:none;display:grid;place-items:center;color:#fff}
   .vn .ic svg{width:21px;height:21px}
   .vn .app{display:flex;justify-content:space-between;font-size:12.5px;color:var(--tx-2);margin-bottom:2px}
@@ -306,7 +311,10 @@
   .fileiras{position:relative}
   .lente-rot{margin-top:22px;text-align:center;font-size:15px;color:var(--tx-2)}
   .lente-rot b{color:var(--tx);font-weight:600}
-  .rio::before,.rio::after{content:"";position:absolute;top:0;bottom:0;width:14%;z-index:3;pointer-events:none}
+  /* 14% fixo dava 55px num celular de 390px -- menos que a largura de UM chip,
+     entao o chip era cortado no meio em vez de sumir suave. O piso de 120px
+     garante que sempre cabe um chip inteiro dentro do degrade. */
+  .rio::before,.rio::after{content:"";position:absolute;top:0;bottom:0;width:max(14%,120px);z-index:3;pointer-events:none}
   .rio::before{left:0;background:linear-gradient(90deg,var(--fundo-2),transparent)}
   .rio::after{right:0;background:linear-gradient(-90deg,var(--fundo-2),transparent)}
   .conta{margin-top:110px;text-align:center}
@@ -1223,9 +1231,14 @@ const PLANOS = {
     let ult = -1; ts.forEach((t, i) => { if (t > 0) ult = i; });
     vnsEl.forEach((el, i) => {
       const t = ts[i], prof = Math.max(0, ult - i);
-      el.style.opacity = (t * (prof > 3 ? 0 : 1 - prof * .14)).toFixed(3);
+      // .14 por nivel era fraco: o cartao de tras ficava legivel ATRAVES do da
+      // frente e as duas frases se liam juntas -- a "sopa" que ele apontou. Com
+      // .26 a pilha continua se vendo como pilha, mas so' a da frente se le,
+      // que e' o ponto da secao (o resto soterra o seu motivo).
+      el.style.opacity = (t * (prof > 3 ? 0 : 1 - prof * .26)).toFixed(3);
       el.style.transform = `translateY(${((1 - t) * -70 + prof * 15).toFixed(1)}px) scale(${((.93 + .07 * t) * (1 - prof * .05)).toFixed(4)})`;
       el.style.zIndex = 10 + i;
+      el.classList.toggle("atras", prof > 0);   // so' a da frente e' vidro
     });
     const n = ult + 1;
     motMini.style.opacity = (1 - Math.min(.7, n * .14)).toFixed(3);
