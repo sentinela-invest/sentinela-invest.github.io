@@ -579,7 +579,15 @@
       <div class="fileira" data-dir="1"></div>
       <div class="fileira" data-dir="-1"></div>
     </div>
-    <div class="lente vidro" id="lente" data-borda=".26" data-desfoque=".35" data-prisma></div>
+    <!-- A lente e' BAIXA (92px). Os padroes de bisel (.3) e forca (.5) sao
+         fracao da MENOR dimensao, entao aqui davam 24px de bisel de cada lado
+         e 46px de deslocamento numa altura de 92: sobrava uma faixa de 44px no
+         meio e as fileiras de cima e de baixo eram empurradas pra fora -- o
+         vidro "apagava" o que devia mostrar. Bisel e forca menores devolvem o
+         miolo, e o data-zoom faz ela finalmente AMPLIAR, que e o que uma lente
+         faz. -->
+    <div class="lente vidro" id="lente" data-borda=".14" data-forca=".16" data-desfoque=".3"
+         data-zoom="1.35" data-prisma></div>
   </div>
   <p class="lente-rot">a lente é a sua carteira: <b>WEGE3 · ITSA4 · SBSP3</b></p>
   <div class="m">
@@ -917,7 +925,17 @@ const PLANOS = {
       const fw = larg(fonte) || f.width || 1, fh = alt(fonte) || f.height || 1;
       const s = v.width / (larg(vidro) || 1) || 1;
       clone.style.width = fw + "px"; clone.style.height = fh + "px";
-      clone.style.transform = `translate(${((f.left - v.left) / s).toFixed(2)}px,${((f.top - v.top) / s).toFixed(2)}px) scale(${(f.width / fw / s).toFixed(4)})`;
+      // data-zoom: AMPLIACAO, em torno do centro do vidro. Sem ela o vidro
+      // mostra o que esta atras em 1:1 e le como borrao, nao como lente --
+      // era a queixa de 29/09 sobre a lente da CVM. Padrao 1 = como era antes.
+      // A composicao translate(T) scale(Z) translate(d) scale(base), com
+      // transform-origin 0 0, colapsa em T+Z*d e Z*base.
+      const dx = (f.left - v.left) / s, dy = (f.top - v.top) / s, base = f.width / fw / s;
+      const z = +vidro.dataset.zoom || 1;
+      const cx = (larg(vidro) || 0) / 2, cy = (alt(vidro) || 0) / 2;
+      clone.style.transform =
+        `translate(${(cx * (1 - z) + z * dx).toFixed(2)}px,${(cy * (1 - z) + z * dy).toFixed(2)}px) `
+        + `scale(${(z * base).toFixed(4)})`;
       if (op.sync) op.sync(clone);
     }
     alinhadores.push(alinhar);
@@ -1364,14 +1382,24 @@ const PLANOS = {
       A(noti, { opacity: 0 }, { duration: .2 });
       await A(chat, { y: ["100%", "0%"] }, { duration: .7, ease: EXPO }); if (!vivo()) return;
       A(bols, { opacity: [0, 1], y: [14, 0] }, { duration: .5, ease: VOLTA, delay: M.stagger(.7, { startDelay: .1 }) });
-      await dorme(700 * (bols.length - 1) + 600 + 3000); if (!vivo()) return;
+      // 3s de leitura era pouco: a conversa inteira aparecia e sumia em 7s, e
+      // quem chegava na secao no meio do ciclo perdia o aviso. 9s deixa a
+      // mensagem ~13s na tela -- dentro dos "10 a 25 segundos" que o Miguel
+      // pediu em 29/09, e tempo de ler os quatro baloes sem correr.
+      await dorme(700 * (bols.length - 1) + 600 + 9000); if (!vivo()) return;
       await A(chat, { y: ["0%", "100%"] }, { duration: .6, ease: EXPO_IN }); if (!vivo()) return;
       await dorme(1000);
     }
   }
   let celNaTela = false;
   const comecaCel = () => { versao++; if (!pausadoCel) ciclo(versao); };
-  M.inView("#aparelho", () => { celNaTela = true; comecaCel(); return () => { celNaTela = false; versao++; zeraCel(); }; }, { amount: .25 });
+  // amount .25 num celular de 683px de altura significa que so' rolar pra ler
+  // o texto ao lado ja tirava o aparelho do gatilho -- e a saida faz
+  // `zeraCel()`, entao a animacao nao pausava, RECOMECAVA do zero. Era esse o
+  // "fica bugada" de 29/09: o ciclo nunca chegava ao fim numa tela de laptop.
+  // .08 mantem o laco vivo enquanto qualquer pedaco do aparelho estiver a
+  // vista, que e' quando a animacao tem publico.
+  M.inView("#aparelho", () => { celNaTela = true; comecaCel(); return () => { celNaTela = false; versao++; zeraCel(); }; }, { amount: .08 });
   const btCel = document.getElementById("pausa-cel");
   btCel.addEventListener("click", () => {
     pausadoCel = !pausadoCel;
