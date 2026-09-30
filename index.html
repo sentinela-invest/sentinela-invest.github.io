@@ -310,8 +310,9 @@
   .chip.aceso{background:var(--azul);color:#fff;box-shadow:0 10px 26px -10px var(--azul);transform:scale(1.06)}
   .chip.aceso b{color:rgba(255,255,255,.85)}
   .lente{position:absolute;z-index:4;left:50%;top:50%;width:min(420px,78vw);height:92px;border-radius:999px;translate:-50% -50%;pointer-events:none;
-    --tinta-r:rgba(255,255,255,.08)}
-  [data-tema="preto"] .lente{--tinta-r:rgba(255,255,255,.035)}
+    box-shadow:inset 0 0 0 1.5px var(--lente-aro), 0 0 0 1px var(--lente-fora), 0 10px 40px rgba(0,0,0,.28);
+    --lente-aro:rgba(255,255,255,.55); --lente-fora:rgba(0,0,0,.35)}
+  [data-tema="branco"] .lente{--lente-aro:rgba(0,0,0,.42); --lente-fora:rgba(255,255,255,.6)}
   .fileiras{position:relative}
   .lente-rot{margin-top:22px;text-align:center;font-size:15px;color:var(--tx-2)}
   .lente-rot b{color:var(--tx);font-weight:600}
@@ -597,8 +598,12 @@
          vidro "apagava" o que devia mostrar. Bisel e forca menores devolvem o
          miolo, e o data-zoom faz ela finalmente AMPLIAR, que e o que uma lente
          faz. -->
-    <div class="lente vidro" id="lente" data-borda=".14" data-forca=".16" data-desfoque=".3"
-         data-zoom="1.35" data-prisma></div>
+    <!-- Era vidro liquido (copia viva + filtro SVG). Saiu em 29/09 a pedido
+         dele: metade dos elementos da secao eram a copia (394 -> 197 nos), e a
+         seccao e' a que ele sentia travar. O CONTORNO fica porque a legenda
+         logo abaixo diz "a lente e' a sua carteira" -- sem moldura nenhuma a
+         frase perde o referente e os chips acesos ficam soltos. -->
+    <div class="lente" id="lente"></div>
   </div>
   <p class="lente-rot">a lente é a sua carteira: <b>WEGE3 · ITSA4 · SBSP3</b></p>
   <div class="m">
@@ -1226,11 +1231,6 @@ const PLANOS = {
   const FUNDO_TELA = "linear-gradient(180deg,var(--tela-a),var(--tela-b) 55%,var(--tela-c))";
   refrator(document.getElementById("noti"), document.querySelector(".papel"), { fundo: FUNDO_TELA, sync: syncLinha, local: true });
   const fileirasReais = [...document.querySelectorAll("#fileiras .fileira")];
-  refrator(document.getElementById("lente"), document.getElementById("fileiras"), {
-    fundoRef: "var(--fundo-2)",
-    sync: clone => { const fs = clone.querySelectorAll(".fileira"), chipsC = clone.querySelectorAll(".chip"), chipsR = document.querySelectorAll("#fileiras .chip");
-      fileirasReais.forEach((f, i) => fs[i].style.transform = f.style.transform);
-      chipsR.forEach((c, i) => chipsC[i] && chipsC[i].classList.toggle("aceso", c.classList.contains("aceso"))); } });
   const roicReal = document.getElementById("roic");
   refrator(document.getElementById("dica"), document.querySelector("#grafico svg"), {
     fundoRef: "var(--cartao)",
