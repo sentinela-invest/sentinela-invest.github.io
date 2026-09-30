@@ -163,8 +163,12 @@
   /* ---------- problema: as notificacoes da vida empilham e o motivo some embaixo ---------- */
   .vida-g{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center}
   @media (max-width:900px){ .vida-g{grid-template-columns:1fr;gap:34px} }
-  .pilha{position:relative;height:440px}
-  .pilha .motivo{position:absolute;left:50%;top:300px;translate:-50% 0;white-space:nowrap;font-size:16px;min-height:56px}
+  /* 440px deixavam ~200px de PRETO VAZIO entre a pilha e o motivo la'
+     embaixo: o motivo nao lia como 'soterrado pela pilha', lia como um
+     cartao borrado flutuando no nada -- a queixa de 29/09. 300px colam
+     os dois e a secao encurta. */
+  .pilha{position:relative;height:300px}
+  .pilha .motivo{position:absolute;left:50%;top:196px;translate:-50% 0;white-space:nowrap;font-size:16px;min-height:56px}
   .pilha .motivo .tk{font-size:13px;padding:7px 11px}
   @media (max-width:640px){ .pilha .motivo{white-space:normal;width:calc(100% - 16px)} }
   .vn{position:absolute;left:50%;top:60px;width:min(390px,94%);translate:-50% 0;display:flex;gap:12px;align-items:flex-start;padding:13px 15px 14px;border-radius:24px;
@@ -887,9 +891,24 @@ const PLANOS = {
     g.putImageData(img, 0, 0);
     return c.toDataURL();
   }
+  // Tamanho pro qual o mapa de cada lente ja foi gerado. Sem isso o
+  // ResizeObserver refazia o mapa a cada mudanca de tamanho -- e como os
+  // vidros escalam durante o scroll (o celular gira, os cartoes crescem), o
+  // `toDataURL` rodava 24 VEZES numa unica rolagem, cada uma varrendo o
+  // elemento pixel a pixel. Medido: 27ms so' nisso, no meio da rolagem.
+  const tamanhoDoMapa = {};
   function filtro(id, el) {
     const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
     if (w < 4 || h < 4) return;
+    // Arredonda pra faixas de 16px em vez de comparar o tamanho exato. Ha um
+    // elemento que CRESCE durante a rolagem (144px -> 358px de largura), e
+    // com comparacao exata cada pixel a mais refazia o mapa inteiro: 24
+    // regeneracoes numa unica rolagem. O mapa e' esticado pelo filtro
+    // (`preserveAspectRatio="none"`), entao gerar pra 352 e usar em 358 nao
+    // se ve -- e passa de 24 regeneracoes pra 2.
+    const faixa = (Math.round(w / 16) * 16) + "x" + (Math.round(h / 16) * 16);
+    if (tamanhoDoMapa[id] === faixa) return;
+    tamanhoDoMapa[id] = faixa;
     const r = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, w / 2, h / 2);
     const borda = Math.max(6, Math.min(w, h) * (+el.dataset.borda || .3));
     const forca = Math.min(w, h) * (+el.dataset.forca || .5);   // data-forca: lente mais suave onde tem texto em cima
@@ -934,35 +953,82 @@ const PLANOS = {
     }
     // <svg> nao tem offsetWidth (27/09: a gota do Raio-X saiu vazia por isso) -> clientWidth
     const larg = el => el.offsetWidth != null ? el.offsetWidth : el.clientWidth, alt = el => el.offsetHeight != null ? el.offsetHeight : el.clientHeight;
-    function alinhar() {
+    /* LER e ESCREVER sao duas fases separadas de proposito.
+       Antes cada vidro lia getBoundingClientRect e logo em seguida escrevia o
+       transform. Como a escrita invalida o layout, a leitura do vidro
+       SEGUINTE obrigava o navegador a refazer tudo -- 7 layouts forcados por
+       quadro. Medido: 742 chamadas de getBoundingClientRect numa rolagem, 99ms
+       so' nelas, e tarefas longas de ate 78ms.
+       Com `medir()` de todos primeiro e `aplicar()` de todos depois, o layout
+       e' calculado UMA vez por quadro. */
+    let medida = null;
+    function medir() {
       if (op.local) {   // K: o celular gira em 3D; dentro dele, alinha em coordenadas locais
-        const fw = larg(fonte), fh = alt(fonte); clone.style.width = fw + "px"; clone.style.height = fh + "px";
-        const tr = getComputedStyle(vidro).transform, m = new DOMMatrixReadOnly(tr === "none" ? undefined : tr);
-        clone.style.transform = `translate(${(fonte.offsetLeft || 0) - vidro.offsetLeft - m.m41}px,${(fonte.offsetTop || 0) - vidro.offsetTop - m.m42}px)`;
-        if (op.sync) op.sync(clone); return;
+        const tr = getComputedStyle(vidro).transform;
+        medida = { local: true, fw: larg(fonte), fh: alt(fonte),
+                   m: new DOMMatrixReadOnly(tr === "none" ? undefined : tr),
+                   fl: fonte.offsetLeft || 0, ft: fonte.offsetTop || 0,
+                   vl: vidro.offsetLeft, vt: vidro.offsetTop };
+        return;
       }
       const v = vidro.getBoundingClientRect(), f = fonte.getBoundingClientRect();
-      const fw = larg(fonte) || f.width || 1, fh = alt(fonte) || f.height || 1;
-      const s = v.width / (larg(vidro) || 1) || 1;
-      clone.style.width = fw + "px"; clone.style.height = fh + "px";
+      medida = { local: false, v, f,
+                 fw: larg(fonte) || f.width || 1, fh: alt(fonte) || f.height || 1,
+                 lv: larg(vidro) || 1, av: alt(vidro) || 0,
+                 z: +vidro.dataset.zoom || 1 };
+    }
+    function aplicar() {
+      const d = medida;
+      if (!d) return;
+      if (d.local) {
+        clone.style.width = d.fw + "px"; clone.style.height = d.fh + "px";
+        clone.style.transform =
+          `translate(${d.fl - d.vl - d.m.m41}px,${d.ft - d.vt - d.m.m42}px)`;
+        if (op.sync) op.sync(clone); return;
+      }
+      const s = d.v.width / d.lv || 1;
+      clone.style.width = d.fw + "px"; clone.style.height = d.fh + "px";
       // data-zoom: AMPLIACAO, em torno do centro do vidro. Sem ela o vidro
       // mostra o que esta atras em 1:1 e le como borrao, nao como lente --
       // era a queixa de 29/09 sobre a lente da CVM. Padrao 1 = como era antes.
       // A composicao translate(T) scale(Z) translate(d) scale(base), com
       // transform-origin 0 0, colapsa em T+Z*d e Z*base.
-      const dx = (f.left - v.left) / s, dy = (f.top - v.top) / s, base = f.width / fw / s;
-      const z = +vidro.dataset.zoom || 1;
-      const cx = (larg(vidro) || 0) / 2, cy = (alt(vidro) || 0) / 2;
+      const dx = (d.f.left - d.v.left) / s, dy = (d.f.top - d.v.top) / s;
+      const base = d.f.width / d.fw / s, z = d.z, cx = d.lv / 2, cy = d.av / 2;
       clone.style.transform =
         `translate(${(cx * (1 - z) + z * dx).toFixed(2)}px,${(cy * (1 - z) + z * dy).toFixed(2)}px) `
         + `scale(${(z * base).toFixed(4)})`;
       if (op.sync) op.sync(clone);
     }
+    function alinhar() { medir(); aplicar(); }
+    alinhar.medir = medir; alinhar.aplicar = aplicar;
+    // Cada vidro so' e' realinhado quando esta' NA TELA. Antes os 7 eram
+    // recalculados a cada quadro, sempre -- e alinhar e' ler
+    // getBoundingClientRect e logo depois escrever transform, o que forca o
+    // navegador a refazer o layout, 7 vezes por quadro, na maior parte do
+    // tempo pra vidro que ninguem esta vendo. Medido antes: 43 fps rolando no
+    // celular.
+    let naTela = false;
+    new IntersectionObserver(([e]) => {
+      naTela = e.isIntersecting;
+      if (naTela) { alinhar(); acorda(); }      // realinha ao entrar, senao entra torto
+    }, { rootMargin: "120px" }).observe(vidro);
+    alinhar.visivel = () => naTela;
     alinhadores.push(alinhar);
     return alinhar;
   }
-  const sincroniza = () => alinhadores.forEach(fn => fn());
-  window.__sync = sincroniza;
+  // `todos` existe pro render de video e pro __sync externo, que precisam da
+  // pagina inteira coerente mesmo fora da tela.
+  const sincroniza = (todos) => {
+    const ativos = alinhadores.filter(fn => todos || !fn.visivel || fn.visivel());
+    ativos.forEach(fn => fn.medir());     // LER tudo...
+    ativos.forEach(fn => fn.aplicar());   // ...e so' depois ESCREVER tudo
+  };
+  window.__sync = () => sincroniza(true);
+  // O laco de realinhamento dorme quando nao ha vidro na tela; quem volta a
+  // aparecer o acorda. Declarado aqui porque o `refrator` chama `acorda()`.
+  let dormindo = false, acordaLoop = () => {};
+  const acorda = () => { if (dormindo) { dormindo = false; acordaLoop(); } };
 
   /* brilho especular: acompanha o ponteiro (desktop) e o scroll (celular) */
   const todosVidros = [...document.querySelectorAll(".vidro")];
@@ -1273,7 +1339,15 @@ const PLANOS = {
   }
 
   /* realinha as copias do vidro a cada quadro */
-  (function loop() { sincroniza(); requestAnimationFrame(loop); })();
+  // O laco so' roda quando ha vidro na tela. Fora disso ele dorme -- antes
+  // girava a 60fps a pagina inteira, inclusive parado no topo sem nenhum
+  // vidro a vista, gastando bateria e disputando quadro com as animacoes.
+  acordaLoop = function loop() {
+    if (!alinhadores.some(fn => !fn.visivel || fn.visivel())) { dormindo = true; return; }
+    sincroniza();
+    requestAnimationFrame(loop);
+  };
+  acordaLoop();
 
   /* ---------------- linhas do titulo subindo (o SplitText do Motion e' pago; esse e' caseiro) ---------------- */
   function linhas(el) {
@@ -1400,7 +1474,11 @@ const PLANOS = {
     while (vivo()) {
       zeraCel();
       await traca(1.8); if (!vivo()) return;
-      A(noti, { y: [-120, 0], opacity: [0, 1] }, MOLA(.35, .9));
+      // Chegada de notificação como no iPhone: ela DESCE e assenta, com um
+      // toque de escala. O bounce de .35 saltava demais e denunciava que era
+      // web; .2 com duração maior é o assentamento macio do iOS. A escala
+      // entrando de .94 é o que dá a sensação de "veio de trás da tela".
+      A(noti, { y: [-130, 0], opacity: [0, 1], scale: [.94, 1] }, MOLA(.2, 1.05));
       await dorme(150); A(0, 1, { duration: .9, ease: "easeInOut", onUpdate: q => achado(28.1 - 3.8 * q) }); A("#achado-n", { scale: [1, 1.12, 1] }, { duration: .6, ease: "easeOut", delay: .55 });
       await dorme(3150); if (!vivo()) return;
       await A(noti, { scale: [1, .95, 1] }, { duration: .24 }); if (!vivo()) return;
@@ -1411,7 +1489,11 @@ const PLANOS = {
       // quem chegava na secao no meio do ciclo perdia o aviso. 9s deixa a
       // mensagem ~13s na tela -- dentro dos "10 a 25 segundos" que o Miguel
       // pediu em 29/09, e tempo de ler os quatro baloes sem correr.
-      await dorme(700 * (bols.length - 1) + 600 + 9000); if (!vivo()) return;
+      // 18s de leitura depois do último balão: a conversa fica ~22s na tela e
+      // o ciclo inteiro vai a ~28s. Pedido dele em 29/09 ("20 ou 30 segundos,
+      // a pessoa consegue ler direitinho"). Os 9s de antes ainda corriam: quem
+      // chegava na seção no meio do ciclo pegava a conversa já saindo.
+      await dorme(700 * (bols.length - 1) + 600 + 18000); if (!vivo()) return;
       await A(chat, { y: ["0%", "100%"] }, { duration: .6, ease: EXPO_IN }); if (!vivo()) return;
       await dorme(1000);
     }
