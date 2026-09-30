@@ -17,7 +17,15 @@
 <meta property="og:image" content="https://sentinelainvest.com/midia/anuncio-capa-preto.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#000000">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000'><rect width='1000' height='1000' rx='150' fill='%23fff'/><path d='M190 430 Q500 220 810 430' fill='none' stroke='%23000' stroke-width='96'/><path d='M190 570 Q500 780 810 570' fill='none' stroke='%23000' stroke-width='96'/><circle cx='500' cy='500' r='84' fill='%232AABEE'/></svg>">
+<!-- Icone da marca (30/09). Era um data: URI, e o Safari (Mac e iPhone) IGNORA
+     data: URI em favicon: no iPhone o site ficava sem icone, e "Adicionar a Tela
+     de Inicio" pegava um print da pagina no lugar da marca. Agora sao arquivos.
+     Fundo BRANCO de proposito: o iOS nao respeita transparencia no
+     apple-touch-icon (pinta o fundo de preto) e o olho preto sumiria. -->
+<link rel="icon" type="image/svg+xml" href="marca/sentinela-avatar.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="marca/favicon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="marca/favicon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="marca/favicon-180.png">
 <script>
   (function () {
     var t = null;
