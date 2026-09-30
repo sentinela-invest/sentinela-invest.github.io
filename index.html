@@ -1484,13 +1484,23 @@ const PLANOS = {
   }
   let celNaTela = false;
   const comecaCel = () => { versao++; if (!pausadoCel) ciclo(versao); };
-  // amount .25 num celular de 683px de altura significa que so' rolar pra ler
-  // o texto ao lado ja tirava o aparelho do gatilho -- e a saida faz
-  // `zeraCel()`, entao a animacao nao pausava, RECOMECAVA do zero. Era esse o
-  // "fica bugada" de 29/09: o ciclo nunca chegava ao fim numa tela de laptop.
-  // .08 mantem o laco vivo enquanto qualquer pedaco do aparelho estiver a
-  // vista, que e' quando a animacao tem publico.
-  M.inView("#aparelho", () => { celNaTela = true; comecaCel(); return () => { celNaTela = false; versao++; zeraCel(); }; }, { amount: .08 });
+  /* O PISCA-PISCA (29/09). A saida de tela fazia `versao++; zeraCel()`: o
+     banner era APAGADO na hora e, na volta, o ciclo recomecava do zero, pela
+     linha. Quem rolava pra ler o texto ao lado e voltava via a mensagem sumir
+     e reaparecer 2,5s depois. Medido: 3 saidas, 3 apagoes.
+     Mexer no `amount` nao resolvia nada -- so' mudava ONDE o apagao
+     acontecia. O errado era resetar.
+     Agora comeca UMA vez, quando o aparelho aparece pela primeira vez, e
+     nunca mais para. O custo de deixar rodando fora da tela e' um punhado de
+     animacoes e um setTimeout de 20s; o pisca custava a cena inteira. */
+  let celJaComecou = false;
+  M.inView("#aparelho", () => {
+    celNaTela = true;
+    if (celJaComecou) return;          // ja esta rodando: nao encosta
+    celJaComecou = true;
+    comecaCel();
+    // sem funcao de limpeza DE PROPOSITO: sair da tela nao pode zerar nada
+  }, { amount: .08 });
   const btCel = document.getElementById("pausa-cel");
   btCel.addEventListener("click", () => {
     pausadoCel = !pausadoCel;
