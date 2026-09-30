@@ -573,7 +573,6 @@
       <p class="vida-fim" id="vida-fim">E o motivo da sua compra fica lá embaixo.</p>
     </div>
     <div class="pilha" id="pilha" aria-hidden="true">
-      <div class="motivo vidro" id="motivo-mini"><span class="tk">WEGE3</span>Qualidade: margens altas e ROIC elevado.</div>
       <div class="vn vidro"><span class="ic" style="background:#FF3B30"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2.5"/><path d="M3 8.5h14M7 3v3M13 3v3" stroke-linecap="round"/></svg></span><span><span class="app"><span>Calendário</span><span>agora</span></span><span class="tx">Reunião às 9h com o time</span></span></div><div class="vn vidro"><span class="ic" style="background:#34C759"><svg viewBox="0 0 20 20" fill="#fff"><path d="M10 3.5c4.1 0 7.2 2.6 7.2 6s-3.1 6-7.2 6c-.9 0-1.7-.1-2.5-.4L4 16.5l.9-3.1C3.6 12.3 2.8 11 2.8 9.5c0-3.4 3.1-6 7.2-6z"/></svg></span><span><span class="app"><span>Mensagens</span><span>agora</span></span><span class="tx">23 mensagens novas</span></span></div><div class="vn vidro"><span class="ic" style="background:#5856D6"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M3 8l7-4 7 4zM4.5 8.5v6M8 8.5v6M12 8.5v6M15.5 8.5v6M3 16h14"/></svg></span><span><span class="app"><span>Banco</span><span>agora</span></span><span class="tx">O boleto do cartão vence hoje</span></span></div><div class="vn vidro"><span class="ic" style="background:#30B0C7"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="2.6"/><circle cx="13.5" cy="8.5" r="2.1"/><path d="M2.8 16c.5-2.7 2.4-4.4 4.7-4.4s4.2 1.7 4.7 4.4M12.2 12.2c2.2-.3 4.3 1 5 3.8"/></svg></span><span><span class="app"><span>Família</span><span>agora</span></span><span class="tx">Mãe: quem vem no almoço de domingo?</span></span></div><div class="vn vidro"><span class="ic" style="background:#FF9500"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M4 7h12l-1 10H5z"/><path d="M7.5 7V5.5a2.5 2.5 0 0 1 5 0V7" stroke-linecap="round"/></svg></span><span><span class="app"><span>Loja</span><span>agora</span></span><span class="tx">Seu pedido saiu para entrega</span></span></div>
     </div>
   </div>
@@ -643,16 +642,6 @@
           <span class="bt-vidro vidro" id="bt-lanterna" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 2.5h6v3.5l-1.6 2.6V17.5H8.6V8.6L7 6z"/><path d="M10 11v2" stroke-linecap="round"/></svg></span>
           <span class="bt-vidro vidro" id="bt-camera" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 6.5h3.2L7.2 4.5h5.6l1.5 2h3.2v9h-15z"/><circle cx="10" cy="11" r="3"/></svg></span>
           <div class="barrinha"></div>
-          <div class="chat" id="chat">
-            <div class="topo"><div class="av">S</div><div class="nm">Sentinela.invest<small>bot</small></div></div>
-            <div class="conv">
-              <div class="bol"><b>🚨 WEGE3 · aviso de tese</b>O ROIC está em 24,3%. O limite que você escolheu era 25%.<span class="h">18:10</span></div>
-              <div class="bol">Seu motivo pra WEGE3:<div class="cit">Qualidade: margens altas e ROIC elevado.</div><span class="h">18:10</span></div>
-              <div class="bol">📄 Li o último balanço antes de te chamar. A margem EBITDA segue em 21,2%, acima do seu piso de 17%.<span class="h">18:10</span></div>
-              <div class="bol">A decisão é sua. Não é recomendação de compra nem de venda.<span class="h">18:11</span></div>
-            </div>
-            <div class="entrada vidro" aria-hidden="true"><span>Mensagem</span><i><svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M4 7l4-4 4 4"/></svg></i></div>
-          </div>
         </div>
       </div>
       </div>
@@ -1278,7 +1267,7 @@ const PLANOS = {
   addEventListener("resize", poeDica); poeDica();
 
   /* ---------------- o celular: estado parado = o aviso na tela (o quadro que conta a historia) ---------------- */
-  const noti = document.getElementById("noti"), chat = document.getElementById("chat"), bols = [...chat.querySelectorAll(".bol")];
+  const noti = document.getElementById("noti");
   const L = linhaPapel.getTotalLength();
   function achado(v) {
     const n = document.getElementById("achado-n"), sm = document.getElementById("achado-s"), abaixo = v < 25;
@@ -1289,7 +1278,7 @@ const PLANOS = {
   function celParado() {
     achado(24.3);
     linhaPapel.style.strokeDasharray = L; linhaPapel.style.strokeDashoffset = 0;
-    noti.style.opacity = 1; noti.style.transform = "none"; chat.style.transform = "translateY(100%)";
+    noti.style.opacity = 1; noti.style.transform = "none";
   }
 
   function ligar() {
@@ -1303,7 +1292,7 @@ const PLANOS = {
   addEventListener("resize", ligar); document.fonts.ready.then(ligar);
 
   /* ---------------- o problema: notificacoes empilham (scroll) e o motivo some embaixo ---------------- */
-  const vnsEl = [...document.querySelectorAll(".vn")], motMini = document.getElementById("motivo-mini"), vidaFim = document.getElementById("vida-fim");
+  const vnsEl = [...document.querySelectorAll(".vn")], vidaFim = document.getElementById("vida-fim");
   function vidaQuadro(p) {
     const ts = vnsEl.map((_, i) => Math.min(1, Math.max(0, (p - i * .15) / .13)));
     let ult = -1; ts.forEach((t, i) => { if (t > 0) ult = i; });
@@ -1319,8 +1308,6 @@ const PLANOS = {
       el.classList.toggle("atras", prof > 0);   // so' a da frente e' vidro
     });
     const n = ult + 1;
-    motMini.style.opacity = (1 - Math.min(.7, n * .14)).toFixed(3);
-    motMini.style.filter = `blur(${(n * .9).toFixed(1)}px)`;
     vidaFim.style.opacity = Math.min(1, Math.max(0, (p - .82) / .12)).toFixed(3);
   }
 
@@ -1465,37 +1452,34 @@ const PLANOS = {
     rodando.forEach(a => a.stop()); rodando = [];
     linhaPapel.style.strokeDasharray = L; linhaPapel.style.strokeDashoffset = L;
     noti.style.opacity = 0; noti.style.transform = "translateY(-120px)";
-    chat.style.transform = "translateY(100%)";
-    bols.forEach(b => { b.style.opacity = 0; b.style.transform = "translateY(14px)"; });
     achado(28.1);
   }
+  /* O ciclo do celular, refeito em 29/09 a pedido dele. Era um curta: linha,
+     notificação, notificação sai, conversa do Telegram sobe, quatro balões
+     entram um a um, conversa desce. Muita coisa, e a seção não é sobre o
+     Telegram -- é sobre O MOMENTO em que o aviso chega.
+     Agora são três batidas e só:
+        1. a linha sobe até o outro lado da tela
+        2. o banner cai na tela de bloqueio, como notificação de iPhone
+        3. 20 segundos parado, pra dar tempo de ler
+     Depois some e recomeça. A conversa do Telegram saiu do HTML junto. */
   async function ciclo(v) {
     const vivo = () => v === versao;
     while (vivo()) {
       zeraCel();
-      await traca(1.8); if (!vivo()) return;
-      // Chegada de notificação como no iPhone: ela DESCE e assenta, com um
-      // toque de escala. O bounce de .35 saltava demais e denunciava que era
-      // web; .2 com duração maior é o assentamento macio do iOS. A escala
-      // entrando de .94 é o que dá a sensação de "veio de trás da tela".
+      await traca(2.2); if (!vivo()) return;          // 1. a linha atravessa
+      // 2. o banner ASSENTA: desce e para, com a escala entrando de .94 (a
+      // sensação de "veio de trás da tela"). Bounce baixo -- o salto alto
+      // denuncia que é web; o iOS assenta macio.
       A(noti, { y: [-130, 0], opacity: [0, 1], scale: [.94, 1] }, MOLA(.2, 1.05));
-      await dorme(150); A(0, 1, { duration: .9, ease: "easeInOut", onUpdate: q => achado(28.1 - 3.8 * q) }); A("#achado-n", { scale: [1, 1.12, 1] }, { duration: .6, ease: "easeOut", delay: .55 });
-      await dorme(3150); if (!vivo()) return;
-      await A(noti, { scale: [1, .95, 1] }, { duration: .24 }); if (!vivo()) return;
-      A(noti, { opacity: 0 }, { duration: .2 });
-      await A(chat, { y: ["100%", "0%"] }, { duration: .7, ease: EXPO }); if (!vivo()) return;
-      A(bols, { opacity: [0, 1], y: [14, 0] }, { duration: .5, ease: VOLTA, delay: M.stagger(.7, { startDelay: .1 }) });
-      // 3s de leitura era pouco: a conversa inteira aparecia e sumia em 7s, e
-      // quem chegava na secao no meio do ciclo perdia o aviso. 9s deixa a
-      // mensagem ~13s na tela -- dentro dos "10 a 25 segundos" que o Miguel
-      // pediu em 29/09, e tempo de ler os quatro baloes sem correr.
-      // 18s de leitura depois do último balão: a conversa fica ~22s na tela e
-      // o ciclo inteiro vai a ~28s. Pedido dele em 29/09 ("20 ou 30 segundos,
-      // a pessoa consegue ler direitinho"). Os 9s de antes ainda corriam: quem
-      // chegava na seção no meio do ciclo pegava a conversa já saindo.
-      await dorme(700 * (bols.length - 1) + 600 + 18000); if (!vivo()) return;
-      await A(chat, { y: ["0%", "100%"] }, { duration: .6, ease: EXPO_IN }); if (!vivo()) return;
-      await dorme(1000);
+      // o número no cartão da ficha desce junto, que é o que liga as duas coisas
+      await dorme(150);
+      A(0, 1, { duration: .9, ease: "easeInOut", onUpdate: q => achado(28.1 - 3.8 * q) });
+      A("#achado-n", { scale: [1, 1.12, 1] }, { duration: .6, ease: "easeOut", delay: .55 });
+      await dorme(20000); if (!vivo()) return;        // 3. 20s parado pra ler
+      await A(noti, { opacity: 0, y: -40, scale: .96 },
+              { duration: .45, ease: EXPO_IN }); if (!vivo()) return;
+      await dorme(900);
     }
   }
   let celNaTela = false;
