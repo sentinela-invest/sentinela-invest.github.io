@@ -498,9 +498,8 @@
   .pausa svg{width:16px;height:16px}
   .pausa .ic-play,.pausa[aria-pressed="true"] .ic-pausa{display:none}
   .pausa[aria-pressed="true"] .ic-play{display:block}
-  #pausa-cel{left:calc(50% + 190px);bottom:10px}
   #pausa-faixa{right:0;bottom:-6px}
-  @media (max-width:640px){ #pausa-cel{position:relative;left:auto;bottom:auto;order:3} #pausa-faixa{right:8px} }
+  @media (max-width:640px){ #pausa-faixa{right:8px} }
   .pausado .liga path{animation-play-state:paused}
   .liga path{animation:marcha 1s linear infinite}
   @keyframes marcha{to{stroke-dashoffset:-18}}
@@ -666,7 +665,6 @@
         </div>
       </div>
       </div>
-      <button class="pausa vidro" id="pausa-cel" aria-pressed="false" aria-label="Pausar a animação do celular"><svg class="ic-pausa" viewBox="0 0 16 16" fill="currentColor"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg><svg class="ic-play" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 2.8v10.4L13 8z"/></svg></button>
       <div class="selo" id="selo"><span class="mono">o que aconteceu</span><p>Saiu o balanço da WEGE3. O ROIC caiu pra <b>24,3%</b>, e você tinha dito que <b>abaixo de 25%</b> queria saber. Foi só isso que ele mandou no dia.</p></div>
     </div>
   </div>
@@ -1458,7 +1456,7 @@ const PLANOS = {
 
   /* ---------------- o celular: grafico desenha, aviso cai, conversa abre - e recomeca do zero
      SEMPRE que o celular volta pra tela (pedido dele, 27/09). O botao de pausa para tudo. ---------------- */
-  let versao = 0, rodando = [], pausadoCel = false;
+  let versao = 0, rodando = [];
   const dorme = ms => new Promise(r => setTimeout(r, ms));
   const A = (alvo, kf, op) => { const a = M.animate(alvo, kf, op); rodando.push(a); return a; };
   const traca = (seg) => A(0, 1, { duration: seg * 1.25, ease: [0.33, 0, 0.12, 1], onUpdate: p => linhaPapel.style.strokeDashoffset = L * (1 - p) });
@@ -1490,14 +1488,14 @@ const PLANOS = {
       await dorme(150);
       A(0, 1, { duration: .9, ease: "easeInOut", onUpdate: q => achado(28.1 - 3.8 * q) });
       A("#achado-n", { scale: [1, 1.12, 1] }, { duration: .6, ease: "easeOut", delay: .55 });
-      await dorme(20000); if (!vivo()) return;        // 3. 20s parado pra ler
+      await dorme(7000); if (!vivo()) return;         // 3. parado o suficiente pra ler, e so
       await A(noti, { opacity: 0, y: -40, scale: .96 },
               { duration: .45, ease: EXPO_IN }); if (!vivo()) return;
       await dorme(900);
     }
   }
   let celNaTela = false;
-  const comecaCel = () => { versao++; if (!pausadoCel) ciclo(versao); };
+  const comecaCel = () => { versao++; ciclo(versao); };
   /* O PISCA-PISCA (29/09). A saida de tela fazia `versao++; zeraCel()`: o
      banner era APAGADO na hora e, na volta, o ciclo recomecava do zero, pela
      linha. Quem rolava pra ler o texto ao lado e voltava via a mensagem sumir
@@ -1506,7 +1504,10 @@ const PLANOS = {
      acontecia. O errado era resetar.
      Agora comeca UMA vez, quando o aparelho aparece pela primeira vez, e
      nunca mais para. O custo de deixar rodando fora da tela e' um punhado de
-     animacoes e um setTimeout de 20s; o pisca custava a cena inteira. */
+     animacoes e um setTimeout; o pisca custava a cena inteira.
+     30/09: a espera era de 20s e LIA COMO DEFEITO -- ele viu a cena parada e
+     achou que tinha travado. Cena que nao se mexe nao passa por pausa, passa
+     por quebrada. 7s le a mensagem inteira e o ciclo fecha em ~11s. */
   let celJaComecou = false;
   M.inView("#aparelho", () => {
     celNaTela = true;
@@ -1515,13 +1516,6 @@ const PLANOS = {
     comecaCel();
     // sem funcao de limpeza DE PROPOSITO: sair da tela nao pode zerar nada
   }, { amount: .08 });
-  const btCel = document.getElementById("pausa-cel");
-  btCel.addEventListener("click", () => {
-    pausadoCel = !pausadoCel;
-    btCel.setAttribute("aria-pressed", pausadoCel); btCel.setAttribute("aria-label", pausadoCel ? "Continuar a animação do celular" : "Pausar a animação do celular");
-    raiz.classList.toggle("pausado", pausadoCel);
-    if (pausadoCel) { versao++; rodando.forEach(a => a.stop()); rodando = []; celParado(); } else if (celNaTela) comecaCel();
-  });
 
   /* ---------------- comprou e largou: as fileiras correm por baixo da lente ---------------- */
   const rio = document.getElementById("rio");
