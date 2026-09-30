@@ -859,7 +859,15 @@ const PLANOS = {
      com filter normal. Miolo nitido; a borda curva o que passa, como lente.
      Safari/iPhone: filtro SVG em HTML e' instavel no WebKit -> fica o vidro fosco.
      ===================================================================== */
-  const refrataOk = !!(navigator.userAgentData && navigator.userAgentData.brands.some(b => /Chromium/.test(b.brand))) || /Firefox\//.test(navigator.userAgent);
+  /* Duas capacidades DIFERENTES, separadas em 29/09 -- ate aqui eram uma so',
+     e isso desligava vidro inteiro no Safari/iPhone: opaco, sem mostrar o que
+     esta atras e sem ampliar. Mas so' a DISTORCAO precisa de filtro SVG (o
+     instavel no WebKit). A copia viva e a ampliacao sao transform puro e
+     funcionam em qualquer navegador -- nao havia motivo pra perde-las junto.
+       copiaOk     -> mostra e AMPLIA o que esta atras   (todos)
+       distorceOk  -> curva a borda com feDisplacementMap (Chromium/Firefox) */
+  const distorceOk = !!(navigator.userAgentData && navigator.userAgentData.brands.some(b => /Chromium/.test(b.brand))) || /Firefox\//.test(navigator.userAgent);
+  const copiaOk = true;
   const lentes = document.getElementById("lentes");
   let nLente = 0;
   function mapa(w, h, r, borda) {
@@ -908,7 +916,7 @@ const PLANOS = {
      Devolve alinhar(): recoloca a copia exatamente embaixo de onde a fonte esta' agora. */
   const alinhadores = [];
   function refrator(vidro, fonte, op = {}) {
-    if (!refrataOk || !vidro || !fonte) return () => {};
+    if (!copiaOk || !vidro || !fonte) return () => {};
     vidro.classList.add("refr");
     const ref = document.createElement("div"); ref.className = "refrata"; ref.setAttribute("aria-hidden", "true");
     if (op.fundoRef) ref.style.background = op.fundoRef;
@@ -917,9 +925,13 @@ const PLANOS = {
     clone.classList.add("clone"); clone.style.opacity = "1"; clone.style.visibility = "visible";
     if (op.fundo) clone.style.background = op.fundo;
     ref.appendChild(clone); vidro.prepend(ref);
-    const id = "lente-" + (nLente++);
-    ref.style.filter = `url(#${id})`;
-    new ResizeObserver(() => filtro(id, vidro)).observe(vidro);
+    // A distorcao da borda e' o UNICO pedaco que precisa de filtro SVG. Sem
+    // ela o vidro continua transparente e ampliando -- so' nao curva a borda.
+    if (distorceOk) {
+      const id = "lente-" + (nLente++);
+      ref.style.filter = `url(#${id})`;
+      new ResizeObserver(() => filtro(id, vidro)).observe(vidro);
+    }
     // <svg> nao tem offsetWidth (27/09: a gota do Raio-X saiu vazia por isso) -> clientWidth
     const larg = el => el.offsetWidth != null ? el.offsetWidth : el.clientWidth, alt = el => el.offsetHeight != null ? el.offsetHeight : el.clientHeight;
     function alinhar() {
