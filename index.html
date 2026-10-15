@@ -413,6 +413,19 @@ document.addEventListener('click',function(ev){
   var reduz = matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!reduz) document.documentElement.classList.add("js");
 
+  /* origem no link do bot (15/10): ?utm_content=anuncio2 (ou utm_source) vira t.me/...?start=assinar_anuncio2.
+     O bot grava isso em recados/contatos.jsonl e assim sabemos qual anuncio ou post trouxe cada pessoa.
+     Sem origem na URL o link fica como estava (?start=assinar). So letras e numeros, ate 24 caracteres. */
+  try {
+    var q = new URLSearchParams(location.search);
+    var tag = (q.get("utm_content") || q.get("utm_source") || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 24);
+    if (tag) {
+      [].forEach.call(document.querySelectorAll('a[href*="t.me/SentinelaInvestBot"]'), function (a) {
+        a.href = a.href.replace(/start=assinar[a-z0-9_]*/, "start=assinar_" + tag);
+      });
+    }
+  } catch (e) {}
+
   /* atraso em escada dos itens de lista */
   [].forEach.call(document.querySelectorAll(".linha-tempo, .passos, .plano ul, .pessoas"), function (ul) {
     [].forEach.call(ul.children, function (li, i) { li.style.setProperty("--i", i); });
