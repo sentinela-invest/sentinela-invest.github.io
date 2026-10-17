@@ -80,8 +80,8 @@
   @media (hover:hover) and (pointer:fine){ .btn:hover{background:#4bbcf6} .chip:hover{border-color:rgba(255,255,255,.28)} }
 
   /* topo: so a marca. Nada de menu, pra nao competir com o botao */
-  .topo{padding-top:calc(14px + env(safe-area-inset-top,0))}
-  .marca{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:18px;text-decoration:none;letter-spacing:-.02em}
+  .topo{padding-top:calc(6px + env(safe-area-inset-top,0))}
+  .marca{display:inline-flex;align-items:center;min-height:44px;gap:10px;font-weight:700;font-size:18px;text-decoration:none;letter-spacing:-.02em}
   .marca svg{width:28px;height:28px;color:var(--tx)}
 
   /* hero */
@@ -139,7 +139,8 @@
   .linha-tempo q{display:block;color:var(--tx);font-size:16px;margin-top:4px;quotes:"“" "”"}
 
   /* experimente */
-  .chips{scroll-padding-inline:20px;display:flex;gap:8px;margin:22px -20px 0;padding:0 20px 4px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none}
+  .chips{scroll-padding-inline:20px;display:flex;gap:8px;margin:22px -20px 0;padding:0 20px 4px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;
+         -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent)}
   .chips::-webkit-scrollbar{display:none}
   .chip{flex:none;scroll-snap-align:start;min-height:44px;padding:0 16px;background:transparent;border:1px solid var(--linha);border-radius:var(--r);
         font-weight:600;font-size:15px;cursor:pointer;transition:background .12s,border-color .12s}
@@ -226,7 +227,7 @@
   .fim .btn{margin-top:26px}
   footer{padding:28px 0 calc(28px + var(--barra));border-top:1px solid var(--linha);font-size:13px;color:var(--tx-2)}
   footer .m{display:grid;gap:8px}
-  footer a{text-decoration:underline;text-underline-offset:3px}
+  footer a{text-decoration:underline;text-underline-offset:3px;padding:12px 6px;margin:-12px -6px}
 
   /* barra fixa: aparece quando o botao do topo sai da tela e some no botao do fim */
   .barra{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:8px 16px calc(8px + env(safe-area-inset-bottom,0));
@@ -256,11 +257,27 @@ n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
 document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','1688181076646555');fbq('track','PageView');
-document.addEventListener('click',function(ev){
-  var a=ev.target.closest&&ev.target.closest('a[href*="t.me/"]');if(!a)return;
-  var u=new URLSearchParams(location.search);
-  fbq('track','Lead',{content_name:'telegram',anuncio:u.get('utm_content')||'organico'});
-},true);
+(function(){
+  var an=(new URLSearchParams(location.search)).get('utm_content')||'organico',feito={};
+  function uma(n){if(feito[n])return;feito[n]=1;fbq('trackCustom',n,{anuncio:an});}
+  document.addEventListener('click',function(ev){
+    var t=ev.target;if(!t||!t.closest)return;
+    var a=t.closest('a[href*="t.me/"]');
+    if(a){fbq('track','Lead',{content_name:'telegram',anuncio:an,onde:a.id||(a.closest('.barra')?'barra':'outro')});return;}
+    if(t.closest('.chip'))uma('VerDemo');
+    else if(t.closest('#seg-preco button'))uma('VerPlano');
+    else if(t.closest('summary'))uma('AbriDuvida');
+  },true);
+  setTimeout(function(){if(document.visibilityState==='visible')uma('Ficou15s');},15000);
+  addEventListener('scroll',function(){
+    var p=(scrollY+innerHeight)/document.documentElement.scrollHeight;
+    if(p>.5)uma('Rolou50');if(p>.9)uma('Rolou90');
+  },{passive:true});
+  document.addEventListener('DOMContentLoaded',function(){
+    var el=document.getElementById('plano');
+    if(el&&'IntersectionObserver' in window)new IntersectionObserver(function(es,o){if(es[0].isIntersecting){uma('VerPreco');o.disconnect();}}).observe(el);
+  });
+})();
 </script>
 <noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=1688181076646555&ev=PageView&noscript=1"></noscript>
 </head>
